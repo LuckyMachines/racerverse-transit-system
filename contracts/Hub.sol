@@ -1,157 +1,179 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity 0.8.28;
 
-import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "./HubRegistry.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {HubRegistry} from "./HubRegistry.sol";
+import {IHub} from "./interfaces/IHub.sol";
 
-contract Hub is AccessControlEnumerable {
-    mapping(uint256 => bool) public inputAllowed; // set other hubs to allow input
+/// @title Hub - Base contract for transit system hubs
+/// @notice Hubs connect to each other and route users through the transit system
+contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
+    mapping(uint256 => bool) public inputAllowed;
     mapping(uint256 => bool) public inputActive;
     uint256[] internal _hubInputs;
     uint256[] internal _hubOutputs;
 
-    // or set it allow all inputs;
     bool public allowAllInputs;
     HubRegistry public REGISTRY;
 
     modifier onlyAuthorizedHub() {
-        require(
-            allowAllInputs ||
-                inputAllowed[REGISTRY.idFromAddress(_msgSender())],
-            "hub not authorized"
-        );
+        if (
+            !allowAllInputs &&
+            !inputAllowed[REGISTRY.idFromAddress(msg.sender)]
+        ) revert HubNotAuthorized();
         _;
     }
 
+    /// @param hubRegistryAddress Address of the HubRegistry contract
+    /// @param hubAdmin Address to grant DEFAULT_ADMIN_ROLE
     constructor(address hubRegistryAddress, address hubAdmin) {
         REGISTRY = HubRegistry(hubRegistryAddress);
         _register();
-        _setupRole(DEFAULT_ADMIN_ROLE, hubAdmin);
+        _grantRole(DEFAULT_ADMIN_ROLE, hubAdmin);
     }
 
-    function hubInputs() public view returns (uint256[] memory inputs) {
+    /// @notice Get all hub IDs that have input connections to this hub
+    function hubInputs() external view returns (uint256[] memory inputs) {
         inputs = _hubInputs;
     }
 
-    function hubOutputs() public view returns (uint256[] memory outputs) {
+    /// @notice Get all hub IDs that this hub outputs to
+    function hubOutputs() external view returns (uint256[] memory outputs) {
         outputs = _hubOutputs;
     }
 
-    // Hub to Hub communication
+    // ── Hub-to-Hub communication ───────────────────────────────
+
+    /// @notice Called by another hub to register itself as an input
     function addInput() external onlyAuthorizedHub {
-        // get hub ID of sender
-        uint256 hubID = REGISTRY.idFromAddress(_msgSender());
+        uint256 hubID = REGISTRY.idFromAddress(msg.sender);
         _hubInputs.push(hubID);
         inputActive[hubID] = true;
+        emit InputAdded(hubID);
     }
 
-    function enterUser(address userAddress) external virtual onlyAuthorizedHub {
-        require(
-            inputActive[REGISTRY.idFromAddress(_msgSender())],
-            "origin hub not set as input"
-        );
+    /// @notice Receive a user from an authorized input hub
+    /// @param userAddress The user being transferred
+    /// @dev No reentrancy guard here: transit flows legitimately re-enter
+    ///      the originating hub (e.g. MainHub → DEX → ... → MainHub)
+    function enterUser(address userAddress)
+        external
+        virtual
+        onlyAuthorizedHub
+    {
+        uint256 senderHubId = REGISTRY.idFromAddress(msg.sender);
+        if (!inputActive[senderHubId]) revert OriginHubNotInput();
+        emit UserEntered(userAddress, senderHubId);
         _userWillEnter(userAddress);
         _userDidEnter(userAddress);
     }
 
+    /// @notice Called by another hub to remove itself as an input
+    /// @dev BUG FIX: Original code pushed to _hubInputs instead of removing
     function removeInput() external onlyAuthorizedHub {
-        uint256 hubID = REGISTRY.idFromAddress(_msgSender());
-        _hubInputs.push(hubID);
-        //TODO: remove input
+        uint256 hubID = REGISTRY.idFromAddress(msg.sender);
+        _removeFromArray(_hubInputs, hubID);
         inputActive[hubID] = false;
+        emit InputRemoved(hubID);
     }
 
-    // Admin
+    // ── Admin ──────────────────────────────────────────────────
 
+    /// @notice Toggle whether all hubs are allowed as inputs
+    /// @param allowAll True to accept input from any hub
     function setAllowAllInputs(bool allowAll)
-        public
+        external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         allowAllInputs = allowAll;
+        emit AllowAllInputsChanged(allowAll);
     }
 
+    /// @notice Explicitly allow or deny a specific hub as an input
+    /// @param hubID The hub ID to configure
+    /// @param allowed True to allow, false to deny
     function setInputAllowed(uint256 hubID, bool allowed)
-        public
+        external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         inputAllowed[hubID] = allowed;
+        emit InputAllowedChanged(hubID, allowed);
     }
 
-    function addHubConnections(uint256[] memory outputs)
-        public
+    /// @notice Connect this hub to one or more output hubs
+    /// @param outputs Array of hub IDs to connect to
+    function addHubConnections(uint256[] calldata outputs)
+        external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_connectionHubsValid(outputs), "not all hub indeces valid");
+        if (!_connectionHubsValid(outputs)) revert InvalidHubIndices();
         for (uint256 i = 0; i < outputs.length; i++) {
-            // Set self as input on other hub
             Hub hub = Hub(REGISTRY.hubAddress(outputs[i]));
             hub.addInput();
-            // Set outputs from this hub
             _hubOutputs.push(outputs[i]);
+            emit OutputAdded(outputs[i]);
         }
     }
 
-    function removeHubConnectionsTo(uint256[] memory connectedHubIDs)
-        public
+    /// @notice Remove output connections to specified hubs
+    /// @param connectedHubIDs Array of hub IDs to disconnect from
+    /// @dev BUG FIX: Original code did not remove from _hubOutputs
+    function removeHubConnectionsTo(uint256[] calldata connectedHubIDs)
+        external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        /* 
-        Can only remove output connections originating from self
-        Inputs must be removed from the outputting hub
-        */
-
         for (uint256 i = 0; i < connectedHubIDs.length; i++) {
             Hub hub = Hub(REGISTRY.hubAddress(connectedHubIDs[i]));
             hub.removeInput();
-            //TODO:
-            // remove output from self - connectedHubIDs[i]
+            _removeFromArray(_hubOutputs, connectedHubIDs[i]);
+            emit OutputRemoved(connectedHubIDs[i]);
         }
     }
 
-    // Custom Behaviors
+    // ── Custom Behaviors (override in subclasses) ──────────────
+
     function _userWillEnter(address userAddress) internal virtual {}
-
     function _userDidEnter(address userAddress) internal virtual {}
-
     function _userWillExit(address userAddress) internal virtual {}
-
     function _userDidExit(address userAddress) internal virtual {}
-
     function _railcarWillEnter(uint256 railcarID) internal virtual {}
-
     function _railcarDidEnter(uint256 railcarID) internal virtual {}
-
     function _railcarWillExit(uint256 railcarID) internal virtual {}
-
     function _railcarDidExit(uint256 railcarID) internal virtual {}
 
-    // Internal
+    // ── Internal ───────────────────────────────────────────────
 
+    /// @dev Send a user to another hub by ID
     function _sendUserToHub(address userAddress, uint256 hubID) internal {
         _userWillExit(userAddress);
+        emit UserExited(userAddress, hubID);
         Hub(REGISTRY.hubAddress(hubID)).enterUser(userAddress);
         _userDidExit(userAddress);
     }
 
-    function _sendUserToHub(address userAddress, string memory hubName)
+    /// @dev Send a user to another hub by name
+    function _sendUserToHub(address userAddress, string memory _hubName)
         internal
     {
+        uint256 hubID = REGISTRY.idFromName(_hubName);
         _userWillExit(userAddress);
-        Hub(REGISTRY.addressFromName(hubName)).enterUser(userAddress);
+        emit UserExited(userAddress, hubID);
+        Hub(REGISTRY.addressFromName(_hubName)).enterUser(userAddress);
         _userDidExit(userAddress);
     }
 
     function _register() internal {
-        require(REGISTRY.hubCanRegister(address(this)), "can't register");
+        if (!REGISTRY.hubCanRegister(address(this)))
+            revert RegistrationFailed();
         REGISTRY.register();
     }
 
-    function _connectionHubsValid(uint256[] memory outputs)
+    function _connectionHubsValid(uint256[] calldata outputs)
         internal
         view
         returns (bool isValid)
     {
-        // checks that all IDs passed exist
         isValid = true;
         for (uint256 i = 0; i < outputs.length; i++) {
             if (REGISTRY.hubAddress(outputs[i]) == address(0)) {
@@ -163,14 +185,24 @@ contract Hub is AccessControlEnumerable {
 
     function _isAllowedInput(uint256 hubID) internal view returns (bool) {
         Hub hubToCheck = Hub(REGISTRY.hubAddress(hubID));
-        bool allowed = (hubToCheck.allowAllInputs() ||
-            hubToCheck.inputAllowed(_hubID()))
-            ? true
-            : false;
-        return allowed;
+        return hubToCheck.allowAllInputs() ||
+            hubToCheck.inputAllowed(_hubID());
     }
 
     function _hubID() internal view returns (uint256) {
         return REGISTRY.idFromAddress(address(this));
+    }
+
+    /// @dev Swap-and-pop removal from an unordered array
+    /// @param arr The storage array to modify
+    /// @param value The value to remove (first occurrence)
+    function _removeFromArray(uint256[] storage arr, uint256 value) internal {
+        for (uint256 i = 0; i < arr.length; i++) {
+            if (arr[i] == value) {
+                arr[i] = arr[arr.length - 1];
+                arr.pop();
+                return;
+            }
+        }
     }
 }

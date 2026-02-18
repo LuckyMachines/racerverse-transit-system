@@ -1,20 +1,36 @@
-//SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./Stake.sol";
-import "../../Hub.sol";
-import "./DEX.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {Stake} from "./Stake.sol";
+import {Hub} from "../../Hub.sol";
+import {DEX} from "./DEX.sol";
 
+/// @title NFTDefiHub - Central hub for the NFT+DeFi transit example
+/// @notice Users call claimNFT() to trigger the full transit flow:
+///         MainHub → DEX → Stake → ExclusiveNFT → MainHub
 contract NFTDefiHub is Hub {
+    error InsufficientPayment(uint256 required, uint256 sent);
+    error NFTRequired();
+
+    event NFTClaimed(address indexed user, uint256 payment);
+    event PartyJoined(address indexed guest);
+
     IERC20 internal STAKING_TOKEN;
     IERC721 internal EXCLUSIVE_NFT;
     Stake internal STAKE;
 
-    address[] _partyGuests;
+    address[] internal _partyGuests;
     mapping(address => bool) public atParty;
 
+    uint256 public constant MIN_CLAIM_AMOUNT = 0.1 ether;
+
+    /// @param stakingTokenAddress Address of the StakingToken
+    /// @param exclusiveNFTAddress Address of the ExclusiveNFT
+    /// @param stakingAddress Address of the Stake contract
+    /// @param hubRegistryAddress Address of the HubRegistry
+    /// @param hubAdmin Address to grant admin role
     constructor(
         address stakingTokenAddress,
         address exclusiveNFTAddress,
@@ -29,8 +45,9 @@ contract NFTDefiHub is Hub {
         REGISTRY.setName("sample.main-hub", hubID);
     }
 
+    /// @notice Get a summary of the caller's token holdings
     function getTokenSummary()
-        public
+        external
         view
         returns (
             uint256 nativeTokenBalance,
@@ -45,45 +62,46 @@ contract NFTDefiHub is Hub {
         exclusiveNFTBalance = EXCLUSIVE_NFT.balanceOf(msg.sender);
     }
 
-    function claimNFT() public payable {
-        require(
-            msg.value >= 100000000000000000,
-            "send at least 0.1 eth with tx"
-        );
-        DEX(REGISTRY.addressFromName("sample.dex")).prepay{value: (msg.value)}(
+    /// @notice Claim an NFT by paying at least MIN_CLAIM_AMOUNT
+    /// @dev Triggers the full transit flow through all connected hubs
+    function claimNFT() external payable nonReentrant {
+        if (msg.value < MIN_CLAIM_AMOUNT)
+            revert InsufficientPayment(MIN_CLAIM_AMOUNT, msg.value);
+        DEX(REGISTRY.addressFromName("sample.dex")).prepay{value: msg.value}(
             msg.sender
         );
-
-        // send to next hub on railway
+        emit NFTClaimed(msg.sender, msg.value);
         _sendUserToHub(msg.sender, "sample.dex");
     }
 
-    function getPartyGuests() public view returns (address[] memory) {
+    /// @notice Get all addresses that have completed the transit and joined the party
+    function getPartyGuests() external view returns (address[] memory) {
         return _partyGuests;
     }
 
-    function attemptPartyEntry() public {
-        require(
-            EXCLUSIVE_NFT.balanceOf(msg.sender) > 0,
-            "Exclusive NFT required for entry"
-        );
+    /// @notice Manually attempt to join the party (requires ExclusiveNFT)
+    function attemptPartyEntry() external {
+        if (EXCLUSIVE_NFT.balanceOf(msg.sender) == 0) revert NFTRequired();
         if (!atParty[msg.sender]) {
             _partyGuests.push(msg.sender);
             atParty[msg.sender] = true;
+            emit PartyJoined(msg.sender);
         }
     }
 
-    function attemptPartyEntryFor(address userAddress) internal {
+    /// @dev Attempt party entry on behalf of a user (called by transit hooks)
+    function _attemptPartyEntryFor(address userAddress) internal {
         if (EXCLUSIVE_NFT.balanceOf(userAddress) > 0) {
             if (!atParty[userAddress]) {
                 _partyGuests.push(userAddress);
                 atParty[userAddress] = true;
+                emit PartyJoined(userAddress);
             }
         }
     }
 
-    // Automatic actions from railway
+    /// @dev Automatic action when a user arrives via the transit system
     function _userDidEnter(address userAddress) internal override {
-        attemptPartyEntryFor(userAddress);
+        _attemptPartyEntryFor(userAddress);
     }
 }

@@ -1,15 +1,24 @@
-//SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.28;
 
-import "./StakingToken.sol";
-import "../../Hub.sol";
+import {StakingToken} from "./StakingToken.sol";
+import {Hub} from "../../Hub.sol";
 
+/// @title Stake - Sample staking contract for StakingToken
+/// @notice Part of the NFT+DeFi transit example
 contract Stake is Hub {
+    error InsufficientAllowance();
+
+    event TokensStaked(address indexed staker, uint256 amount);
+
     StakingToken private STAKING_TOKEN;
 
-    // mapping from staker address
+    /// @notice Staker address → staked balance
     mapping(address => uint256) public stakedBalance;
 
+    /// @param stakingTokenAddress Address of the StakingToken contract
+    /// @param hubRegistryAddress Address of the HubRegistry
+    /// @param hubAdmin Address to grant admin role
     constructor(
         address stakingTokenAddress,
         address hubRegistryAddress,
@@ -20,33 +29,42 @@ contract Stake is Hub {
         REGISTRY.setName("sample.stake", hubID);
     }
 
+    /// @notice Stake tokens (caller must have approved this contract)
+    /// @param amount Amount of StakingToken to stake
     function stakeTokens(uint256 amount) public {
-        // requires this contract allowed to spend amount
         STAKING_TOKEN.transferFrom(msg.sender, address(this), amount);
         stakedBalance[msg.sender] += amount;
+        emit TokensStaked(msg.sender, amount);
     }
 
-    function stakeTokensFor(address staker, uint256 amount) public {
-        // requires this contract allowed to spend amount on behalf of staker
+    /// @notice Stake tokens on behalf of another address (internal only)
+    /// @dev Security fix: changed from public to internal to prevent
+    ///      anyone force-staking on behalf of others
+    /// @param staker The address to stake for
+    /// @param amount Amount to stake
+    function stakeTokensFor(address staker, uint256 amount) internal {
         STAKING_TOKEN.transferFrom(staker, address(this), amount);
         stakedBalance[staker] += amount;
+        emit TokensStaked(staker, amount);
     }
 
-    function getBalance() public view returns (uint256 balance) {
+    /// @notice Get the caller's staked balance
+    function getBalance() external view returns (uint256 balance) {
         balance = stakedBalance[msg.sender];
     }
 
+    /// @notice Get any address's staked balance
+    /// @param stakerAddress The address to query
     function stakedBalanceOf(address stakerAddress)
-        public
+        external
         view
         returns (uint256 balance)
     {
         balance = stakedBalance[stakerAddress];
     }
 
-    // Automatic actions from railway
+    /// @dev Automatic action when a user arrives via the transit system
     function _userDidEnter(address userAddress) internal override {
-        // Stake 0.01 Tokens
         stakeTokensFor(userAddress, 0.01 ether);
         _sendUserToHub(userAddress, "sample.exclusive-nft");
     }

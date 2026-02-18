@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity 0.8.28;
 
+/// @title ValidCharacters - Library for validating hub names
+/// @notice Validates strings against the regex pattern [a-z0-9._-]+
+/// @dev Uses a state machine to match lowercase alphanumeric characters, dots, hyphens, and underscores
 library ValidCharacters {
     struct State {
         bool accepts;
@@ -59,12 +62,14 @@ library ValidCharacters {
         return State(false, s0);
     }
 
+    /// @notice Check if a string matches the valid characters pattern
+    /// @param input The string to validate
+    /// @return True if the string matches [a-z0-9._-]+
     function matches(string memory input) public pure returns (bool) {
         State memory cur = State(false, s1);
 
         for (uint256 i = 0; i < bytes(input).length; i++) {
             bytes1 c = bytes(input)[i];
-
             cur = cur.func(c);
         }
 

@@ -1,19 +1,20 @@
 {
-  "name": "@luckymachines/optimistic-railway",
-  "version": "0.0.4",
-  "description": "An on chain registry and mass connection / transit system for dapps and their users.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LuckyMachines/optimistic-railway.git"
-  },
-  "author": "Max Meier",
+  "name": "racerverse-transit-system",
+  "version": "1.0.0",
+  "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
+  "author": "Racerverse",
   "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/LuckyMachines/optimistic-railway/issues"
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy:local": "hardhat ignition deploy ignition/modules/TransitSystem.ts --network localhost"
   },
-  "homepage": "https://github.com/LuckyMachines/optimistic-railway#readme"
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.5.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.0",
+    "solidity-coverage": "^0.8.0"
+  }
 }

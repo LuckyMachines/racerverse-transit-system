@@ -1,6 +1,8 @@
-## This example shows how we can connect 4 different contracts via the Optimistic Railway.
+## NFT + DeFi Transit Example
 
-**Each contract is a simplified version of a realistic contract on Optimism, connected to a railway hub:**
+This example shows how we can connect 4 different contracts via the Racerverse Transit System.
+
+**Each contract is a simplified version of a realistic contract, connected to a transit hub:**
 
 - **DEX.sol:** A sample exchange that swaps native tokens for a sample custom ERC20 token
 - **Stake.sol:** A sample staking contract that locks up some amount of the sample ERC20 token
@@ -33,6 +35,6 @@ The four processes we are demonstrating here are:
 1. Call getTokenSummary() on MainHub. Notice we only have our native token balance.
 2. Make sure you have enough native tokens and call claimNFT()
 3. You should now have executed a trade, staked some tokens, and minted your NFT! Call getTokenSummary() again to see.
-4. As a bonus, call getPartyGuests() to see how many users have completed this same railway sequence
+4. As a bonus, call getPartyGuests() to see how many users have completed this same transit sequence
 
 [![Watch the video](https://img.youtube.com/vi/DUUnCTDvmmM/hqdefault.jpg)](https://youtu.be/DUUnCTDvmmM)
