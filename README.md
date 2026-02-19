@@ -10,8 +10,8 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 68 tests, 87% code coverage, gas-optimized with Hardhat tooling.
-- **Working end-to-end example** — A 4-hub flow (DEX → Stake → NFT Mint → Party) demonstrates the full system in action, where a single `claimNFT()` call executes a token swap, stakes tokens, mints an NFT, and adds the user to an exclusive guest list.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 80 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Two working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party) and a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
 
 ## Architecture
 
@@ -146,6 +146,24 @@ MainHub ──▶ DEX ──▶ Stake ──▶ ExclusiveNFT ──▶ MainHub
 
 All five steps execute atomically in one transaction.
 
+## Example: Gaming Loot Box
+
+The [`contracts/examples/gaming/`](contracts/examples/gaming/) directory contains a gaming use case with 4 connected hubs:
+
+```
+TicketBooth ──▶ LootRoll ──▶ Forge ──▶ Arena ──▶ TicketBooth
+```
+
+**What happens in a single `buyLootBox()` call:**
+
+1. **TicketBooth** — User pays 0.05 ETH, receives 100 GoldTokens
+2. **LootRoll** — Rolls a random item type (Sword/Shield/Potion) and power level (1–100)
+3. **Forge** — Mints an ERC721 item NFT with the roll stats and equips it
+4. **Arena** — Validates the equipped item and registers the player for PvP
+5. **TicketBooth** — Adds the returning user to the arena participant list
+
+All five steps execute atomically in one transaction.
+
 ## Project Structure
 
 ```
@@ -156,13 +174,15 @@ contracts/
   ValidCharacters.sol      # Name validation library
   interfaces/              # IHub, IHubRegistry, IRailcar
   examples/nft+defi/       # Full working example
+  examples/gaming/         # Gaming loot box example
 test/
   Hub.test.ts              # 13 tests
   HubRegistry.test.ts      # 16 tests
   Railcar.test.ts          # 14 tests
   ValidCharacters.test.ts  # 13 tests
   examples/
-    NFTDefiIntegration.test.ts  # 12 end-to-end tests
+    NFTDefiIntegration.test.ts  # 12 tests
+    GamingLootBox.test.ts       # 12 tests
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 
