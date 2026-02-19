@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.28;
+pragma solidity 0.8.33;
 
 /// @title IRailcar - Interface for Railcar contracts
 /// @notice Defines the external API, custom errors, and events for Railcar

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.28;
+pragma solidity 0.8.33;
 
 /// @title ValidCharacters - Library for validating hub names
 /// @notice Validates strings against the regex pattern [a-z0-9._-]+

@@ -10,7 +10,7 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.28, OpenZeppelin v5, custom errors, reentrancy protection, 68 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 68 tests, 87% code coverage, gas-optimized with Hardhat tooling.
 - **Working end-to-end example** — A 4-hub flow (DEX → Stake → NFT Mint → Party) demonstrates the full system in action, where a single `claimNFT()` call executes a token swap, stakes tokens, mints an NFT, and adds the user to an exclusive guest list.
 
 ## Architecture
