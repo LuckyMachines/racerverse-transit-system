@@ -146,8 +146,6 @@ MainHub ──▶ DEX ──▶ Stake ──▶ ExclusiveNFT ──▶ MainHub
 
 All five steps execute atomically in one transaction.
 
-![NFT + DeFi Transit Flow](assets/racerverse-transit-system.png)
-
 ## Project Structure
 
 ```
