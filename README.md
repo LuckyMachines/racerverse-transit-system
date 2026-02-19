@@ -1,5 +1,7 @@
 # Racerverse Transit System
 
+![Racerverse Transit System](assets/racerverse-transit-system.png)
+
 **On-chain infrastructure for connecting smart contracts into composable, multi-step transaction flows.**
 
 ## Executive Summary
@@ -144,7 +146,7 @@ MainHub ──▶ DEX ──▶ Stake ──▶ ExclusiveNFT ──▶ MainHub
 
 All five steps execute atomically in one transaction.
 
-[![Watch the video](https://img.youtube.com/vi/DUUnCTDvmmM/hqdefault.jpg)](https://youtu.be/DUUnCTDvmmM)
+![NFT + DeFi Transit Flow](assets/racerverse-transit-system.png)
 
 ## Project Structure
 
