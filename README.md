@@ -10,8 +10,8 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 80 tests, 87% code coverage, gas-optimized with Hardhat tooling.
-- **Two working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party) and a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 92 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Three working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), and an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
 
 ## Architecture
 
@@ -164,6 +164,24 @@ TicketBooth ──▶ LootRoll ──▶ Forge ──▶ Arena ──▶ TicketB
 
 All five steps execute atomically in one transaction.
 
+## Example: Arcade Strip
+
+The [`contracts/examples/arcade/`](contracts/examples/arcade/) directory contains an arcade gaming flow with 4 connected hubs and ERC20 token economies:
+
+```
+Arcade ──▶ CoinPusher ──▶ ClawMachine ──▶ PrizeCounter ──▶ Arcade
+```
+
+**What happens in a single `playArcade()` call:**
+
+1. **Arcade** — User pays 0.02 ETH, receives 50 ArcadeTokens
+2. **CoinPusher** — Takes 50 ArcadeTokens, awards random PrizeTickets (Jackpot 200 / BigWin 100 / SmallWin 50 / Consolation 10)
+3. **ClawMachine** — Takes 10 PrizeTickets, mints a Plushie NFT with random type (Bear/Bunny/Dragon/Unicorn) and rarity (Common/Uncommon/Rare/Legendary)
+4. **PrizeCounter** — Validates plushie ownership, records the prize
+5. **Arcade** — Adds the returning user to the hall of fame
+
+All five steps execute atomically in one transaction. Users pre-approve ERC20 spending before calling `playArcade()`, enabling token transfers across hubs within the flow.
+
 ## Project Structure
 
 ```
@@ -175,6 +193,7 @@ contracts/
   interfaces/              # IHub, IHubRegistry, IRailcar
   examples/nft+defi/       # Full working example
   examples/gaming/         # Gaming loot box example
+  examples/arcade/         # Arcade strip example
 test/
   Hub.test.ts              # 13 tests
   HubRegistry.test.ts      # 16 tests
@@ -183,6 +202,7 @@ test/
   examples/
     NFTDefiIntegration.test.ts  # 12 tests
     GamingLootBox.test.ts       # 12 tests
+    ArcadeStrip.test.ts         # 12 tests
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 
