@@ -10,8 +10,8 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 95 tests, 87% code coverage, gas-optimized with Hardhat tooling.
-- **Three working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), and an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 108 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Four working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter), and a Mall Crawl flow (Concourse → Gallery → SoundStage → GameRoom) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
 
 ## Architecture
 
@@ -182,6 +182,24 @@ Arcade ──▶ CoinPusher ──▶ ClawMachine ──▶ PrizeCounter ──�
 
 All five steps execute atomically in one transaction. Users pre-approve ERC20 spending before calling `playArcade()`, enabling token transfers across hubs within the flow.
 
+## Example: Mall Crawl
+
+The [`contracts/examples/mall/`](contracts/examples/mall/) directory contains the first **railcar-based example** — a mall where a shopping group (Railcar) visits 4 storefronts in a single atomic transaction:
+
+```
+Concourse ──▶ Gallery ──▶ SoundStage ──▶ GameRoom ──▶ Concourse
+```
+
+**What happens in a single `startCrawl()` call:**
+
+1. **Concourse** — Caller pays 0.01 ETH, each railcar member receives 100 MallCredit
+2. **Gallery** — Mints a generative art NFT (random Style + Palette) for each member
+3. **SoundStage** — Takes 20 MallCredit per member, mints a music NFT (random Genre + BPM)
+4. **GameRoom** — Awards random MallCredit (Platinum 100 / Gold 50 / Silver 25 / Bronze 10) per member
+5. **Concourse** — Increments crawl count, grants VIP status to members holding both NFTs
+
+All five steps execute atomically in one transaction. Unlike other examples that use user transit (`_userDidEnter`), this example uses **railcar transit** (`_railcarDidEnter`) — each hub iterates over all railcar members, enabling coordinated group operations.
+
 ## Project Structure
 
 ```
@@ -194,8 +212,9 @@ contracts/
   examples/nft+defi/       # Full working example
   examples/gaming/         # Gaming loot box example
   examples/arcade/         # Arcade strip example
+  examples/mall/           # Mall crawl example (railcar transit)
 test/
-  Hub.test.ts              # 13 tests
+  Hub.test.ts              # 17 tests
   HubRegistry.test.ts      # 16 tests
   Railcar.test.ts          # 14 tests
   ValidCharacters.test.ts  # 13 tests
@@ -203,6 +222,7 @@ test/
     NFTDefiIntegration.test.ts  # 12 tests
     GamingLootBox.test.ts       # 12 tests
     ArcadeStrip.test.ts         # 12 tests
+    MallCrawl.test.ts           # 13 tests
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 
