@@ -152,6 +152,55 @@ describe("Hub", function () {
     });
   });
 
+  describe("Railcar Transit", function () {
+    let hubA: Hub;
+    let hubB: Hub;
+
+    beforeEach(async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      hubA = await Hub.deploy(await registry.getAddress(), admin.address);
+      hubB = await Hub.deploy(await registry.getAddress(), admin.address);
+      await hubB.setAllowAllInputs(true);
+
+      const hubBId = await registry.idFromAddress(await hubB.getAddress());
+      await hubA.addHubConnections([hubBId]);
+    });
+
+    it("should allow authorized hub to enter railcar", async function () {
+      const hubAAddr = await hubA.getAddress();
+      await fundAddress(hubAAddr);
+      const hubASigner = await ethers.getImpersonatedSigner(hubAAddr);
+
+      await expect(hubB.connect(hubASigner).enterRailcar(42)).to.not.be
+        .reverted;
+    });
+
+    it("should reject unauthorized hub from entering railcar", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hubC = await Hub.deploy(await registry.getAddress(), admin.address);
+      await hubB.setAllowAllInputs(false);
+
+      const hubCAddr = await hubC.getAddress();
+      await fundAddress(hubCAddr);
+      const hubCSigner = await ethers.getImpersonatedSigner(hubCAddr);
+
+      await expect(
+        hubB.connect(hubCSigner).enterRailcar(42)
+      ).to.be.revertedWithCustomError(hubB, "HubNotAuthorized");
+    });
+
+    it("should emit RailcarEntered event", async function () {
+      const hubAAddr = await hubA.getAddress();
+      await fundAddress(hubAAddr);
+      const hubASigner = await ethers.getImpersonatedSigner(hubAAddr);
+
+      const hubAId = await registry.idFromAddress(hubAAddr);
+      await expect(hubB.connect(hubASigner).enterRailcar(42))
+        .to.emit(hubB, "RailcarEntered")
+        .withArgs(42, hubAId);
+    });
+  });
+
   describe("Input Allow/Deny", function () {
     it("should toggle allowAllInputs", async function () {
       const Hub = await ethers.getContractFactory("Hub");

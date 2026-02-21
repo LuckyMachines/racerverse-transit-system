@@ -69,6 +69,20 @@ contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
         _userDidEnter(userAddress);
     }
 
+    /// @notice Receive a railcar from an authorized input hub
+    /// @param railcarID The railcar being transferred
+    function enterRailcar(uint256 railcarID)
+        external
+        virtual
+        onlyAuthorizedHub
+    {
+        uint256 senderHubId = REGISTRY.idFromAddress(msg.sender);
+        if (!inputActive[senderHubId]) revert OriginHubNotInput();
+        emit RailcarEntered(railcarID, senderHubId);
+        _railcarWillEnter(railcarID);
+        _railcarDidEnter(railcarID);
+    }
+
     /// @notice Called by another hub to remove itself as an input
     /// @dev BUG FIX: Original code pushed to _hubInputs instead of removing
     function removeInput() external onlyAuthorizedHub {
@@ -161,6 +175,25 @@ contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
         emit UserExited(userAddress, hubID);
         Hub(REGISTRY.addressFromName(_hubName)).enterUser(userAddress);
         _userDidExit(userAddress);
+    }
+
+    /// @dev Send a railcar to another hub by ID
+    function _sendRailcarToHub(uint256 railcarID, uint256 hubID) internal {
+        _railcarWillExit(railcarID);
+        emit RailcarExited(railcarID, hubID);
+        Hub(REGISTRY.hubAddress(hubID)).enterRailcar(railcarID);
+        _railcarDidExit(railcarID);
+    }
+
+    /// @dev Send a railcar to another hub by name
+    function _sendRailcarToHub(uint256 railcarID, string memory _hubName)
+        internal
+    {
+        uint256 hubID = REGISTRY.idFromName(_hubName);
+        _railcarWillExit(railcarID);
+        emit RailcarExited(railcarID, hubID);
+        Hub(REGISTRY.addressFromName(_hubName)).enterRailcar(railcarID);
+        _railcarDidExit(railcarID);
     }
 
     function _register() internal {

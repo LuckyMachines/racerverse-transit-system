@@ -17,6 +17,8 @@ interface IHub {
     event OutputRemoved(uint256 indexed hubId);
     event UserEntered(address indexed user, uint256 indexed fromHubId);
     event UserExited(address indexed user, uint256 indexed toHubId);
+    event RailcarEntered(uint256 indexed railcarId, uint256 indexed fromHubId);
+    event RailcarExited(uint256 indexed railcarId, uint256 indexed toHubId);
     event AllowAllInputsChanged(bool allowed);
     event InputAllowedChanged(uint256 indexed hubId, bool allowed);
 
@@ -25,6 +27,7 @@ interface IHub {
     function hubOutputs() external view returns (uint256[] memory);
     function addInput() external;
     function enterUser(address userAddress) external;
+    function enterRailcar(uint256 railcarID) external;
     function removeInput() external;
     function setAllowAllInputs(bool allowAll) external;
     function setInputAllowed(uint256 hubID, bool allowed) external;
