@@ -233,4 +233,43 @@ describe("NFT+DeFi Integration", function () {
       ).to.be.revertedWithCustomError(mainHub, "NFTRequired");
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("MainHub: should have zero balance (ETH forwarded to DEX)", async function () {
+      await stakingToken
+        .connect(user1)
+        .approve(await stake.getAddress(), ethers.parseEther("1"));
+      await mainHub
+        .connect(user1)
+        .claimNFT({ value: ethers.parseEther("0.1") });
+
+      // MainHub forwards all ETH to DEX via prepay, so balance is 0
+      const mainHubBalance = await ethers.provider.getBalance(
+        await mainHub.getAddress()
+      );
+      expect(mainHubBalance).to.equal(0);
+
+      // Withdrawing zero should still succeed
+      await expect(mainHub.withdrawFees(admin.address))
+        .to.emit(mainHub, "FeesWithdrawn")
+        .withArgs(admin.address, 0);
+    });
+
+    it("DEX: should withdraw accumulated ETH", async function () {
+      await stakingToken
+        .connect(user1)
+        .approve(await stake.getAddress(), ethers.parseEther("1"));
+      await mainHub
+        .connect(user1)
+        .claimNFT({ value: ethers.parseEther("0.1") });
+
+      // DEX should hold the 0.1 ETH from the prepay
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await dex.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.1"));
+    });
+  });
 });

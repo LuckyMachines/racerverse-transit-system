@@ -264,4 +264,19 @@ describe("Depot Scheduler Integration", function () {
       expect(await registry.totalRegistrations()).to.equal(2);
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated ETH from Depot", async function () {
+      await depot.connect(user1).enterQueue({ value: ENTRY_PRICE });
+      await depot.connect(user2).enterQueue({ value: ENTRY_PRICE });
+
+      // Depot should hold 0.01 ETH (2 × 0.005)
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await depot.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.01"));
+    });
+  });
 });

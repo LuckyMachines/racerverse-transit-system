@@ -380,4 +380,26 @@ describe("Mall Crawl Integration", function () {
       expect(gameRoomBalance).to.equal(expectedSupply);
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated ETH from Concourse", async function () {
+      const price = ethers.parseEther("0.01");
+
+      await railcar.connect(user1).createRailcar(1);
+      await railcar.connect(user1).joinRailcar(1);
+
+      await mallCredit
+        .connect(user1)
+        .approve(await soundStage.getAddress(), ethers.MaxUint256);
+
+      await concourse.connect(user1).startCrawl(1, { value: price });
+
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await concourse.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.01"));
+    });
+  });
 });

@@ -115,6 +115,20 @@ contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
         emit InputAllowedChanged(hubID, allowed);
     }
 
+    /// @notice Withdraw accumulated fees to a specified address
+    /// @param to The recipient address
+    function withdrawFees(address payable to)
+        external
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        nonReentrant
+    {
+        uint256 balance = address(this).balance;
+        (bool success, ) = to.call{value: balance}("");
+        if (!success) revert WithdrawFailed();
+        emit FeesWithdrawn(to, balance);
+    }
+
     /// @notice Connect this hub to one or more output hubs
     /// @param outputs Array of hub IDs to connect to
     function addHubConnections(uint256[] calldata outputs)

@@ -136,4 +136,40 @@ describe("Railcar", function () {
       ).to.be.reverted;
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated creation fees", async function () {
+      await railcar.setCreationFee(ethers.parseEther("0.1"));
+      await railcar.connect(user1).createRailcar(10, { value: ethers.parseEther("0.1") });
+      await railcar.connect(user2).createRailcar(10, { value: ethers.parseEther("0.1") });
+
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await railcar.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.2"));
+    });
+
+    it("should emit FeesWithdrawn event", async function () {
+      await railcar.setCreationFee(ethers.parseEther("0.1"));
+      await railcar.connect(user1).createRailcar(10, { value: ethers.parseEther("0.1") });
+
+      await expect(railcar.withdrawFees(user1.address))
+        .to.emit(railcar, "FeesWithdrawn")
+        .withArgs(user1.address, ethers.parseEther("0.1"));
+    });
+
+    it("should handle zero balance withdrawal", async function () {
+      await expect(railcar.withdrawFees(user1.address))
+        .to.emit(railcar, "FeesWithdrawn")
+        .withArgs(user1.address, 0);
+    });
+
+    it("should restrict withdrawFees to admin role", async function () {
+      await expect(
+        railcar.connect(user1).withdrawFees(user1.address)
+      ).to.be.reverted;
+    });
+  });
 });

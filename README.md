@@ -10,7 +10,7 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 121 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 135 tests, 87% code coverage, gas-optimized with Hardhat tooling.
 - **Five working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter), a Mall Crawl flow (Concourse → Gallery → SoundStage → GameRoom), and a Depot Scheduler flow (Depot → StampStation → Depot) demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
 
 ## Architecture
@@ -236,16 +236,16 @@ contracts/
   examples/mall/           # Mall crawl example (railcar transit)
   examples/depot/          # Depot scheduler example (AutoLoop async transit)
 test/
-  Hub.test.ts              # 17 tests
+  Hub.test.ts              # 21 tests
   HubRegistry.test.ts      # 16 tests
-  Railcar.test.ts          # 14 tests
+  Railcar.test.ts          # 18 tests
   ValidCharacters.test.ts  # 13 tests
   examples/
-    NFTDefiIntegration.test.ts  # 12 tests
-    GamingLootBox.test.ts       # 12 tests
-    ArcadeStrip.test.ts         # 12 tests
-    MallCrawl.test.ts           # 13 tests
-    DepotScheduler.test.ts      # 13 tests
+    NFTDefiIntegration.test.ts  # 14 tests
+    GamingLootBox.test.ts       # 13 tests
+    ArcadeStrip.test.ts         # 13 tests
+    MallCrawl.test.ts           # 14 tests
+    DepotScheduler.test.ts      # 14 tests
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 

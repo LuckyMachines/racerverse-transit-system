@@ -264,4 +264,20 @@ describe("Gaming Loot Box Integration", function () {
       expect(ticketBoothBalance).to.equal(expectedSupply);
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated ETH from TicketBooth", async function () {
+      const price = ethers.parseEther("0.05");
+      await ticketBooth.connect(user1).buyLootBox({ value: price });
+      await ticketBooth.connect(user2).buyLootBox({ value: price });
+
+      // TicketBooth should hold 0.1 ETH
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await ticketBooth.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.1"));
+    });
+  });
 });

@@ -9,6 +9,7 @@ interface IHub {
     error OriginHubNotInput();
     error InvalidHubIndices();
     error RegistrationFailed();
+    error WithdrawFailed();
 
     // Events
     event InputAdded(uint256 indexed hubId);
@@ -21,6 +22,7 @@ interface IHub {
     event RailcarExited(uint256 indexed railcarId, uint256 indexed toHubId);
     event AllowAllInputsChanged(bool allowed);
     event InputAllowedChanged(uint256 indexed hubId, bool allowed);
+    event FeesWithdrawn(address indexed to, uint256 amount);
 
     // Functions
     function hubInputs() external view returns (uint256[] memory);
@@ -33,4 +35,5 @@ interface IHub {
     function setInputAllowed(uint256 hubID, bool allowed) external;
     function addHubConnections(uint256[] calldata outputs) external;
     function removeHubConnectionsTo(uint256[] calldata connectedHubIDs) external;
+    function withdrawFees(address payable to) external;
 }

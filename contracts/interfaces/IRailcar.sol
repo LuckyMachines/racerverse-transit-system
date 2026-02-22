@@ -10,11 +10,13 @@ interface IRailcar {
     error RailcarFull(uint256 railcarId);
     error AlreadyMember(uint256 railcarId, address member);
     error InvalidRailcarId(uint256 railcarId);
+    error WithdrawFailed();
 
     // Events
     event RailcarCreated(uint256 indexed railcarId, address indexed creator, uint256 memberLimit);
     event MemberJoined(uint256 indexed railcarId, address indexed member);
     event CreationFeeUpdated(uint256 oldFee, uint256 newFee);
+    event FeesWithdrawn(address indexed to, uint256 amount);
 
     // Functions
     function canCreateRailcar(address addr) external view returns (bool);
@@ -25,4 +27,5 @@ interface IRailcar {
     function getCreatedRailcars() external view returns (uint256[] memory);
     function getRailcars() external view returns (uint256[] memory);
     function setCreationFee(uint256 fee) external;
+    function withdrawFees(address payable to) external;
 }

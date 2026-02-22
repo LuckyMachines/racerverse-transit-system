@@ -249,4 +249,56 @@ describe("Hub", function () {
       ).to.be.reverted;
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated ETH to specified address", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hub = await Hub.deploy(await registry.getAddress(), admin.address);
+      const hubAddr = await hub.getAddress();
+
+      // Fund the hub via hardhat_setBalance (base Hub has no receive/payable)
+      await ethers.provider.send("hardhat_setBalance", [
+        hubAddr,
+        "0xDE0B6B3A7640000", // 1 ETH
+      ]);
+
+      const balanceBefore = await ethers.provider.getBalance(user1.address);
+      await hub.withdrawFees(user1.address);
+      const balanceAfter = await ethers.provider.getBalance(user1.address);
+      expect(balanceAfter - balanceBefore).to.equal(ethers.parseEther("1"));
+    });
+
+    it("should emit FeesWithdrawn event", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hub = await Hub.deploy(await registry.getAddress(), admin.address);
+      const hubAddr = await hub.getAddress();
+
+      await ethers.provider.send("hardhat_setBalance", [
+        hubAddr,
+        "0x6F05B59D3B20000", // 0.5 ETH
+      ]);
+
+      await expect(hub.withdrawFees(user1.address))
+        .to.emit(hub, "FeesWithdrawn")
+        .withArgs(user1.address, ethers.parseEther("0.5"));
+    });
+
+    it("should handle zero balance withdrawal", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hub = await Hub.deploy(await registry.getAddress(), admin.address);
+
+      await expect(hub.withdrawFees(user1.address))
+        .to.emit(hub, "FeesWithdrawn")
+        .withArgs(user1.address, 0);
+    });
+
+    it("should restrict withdrawFees to admin role", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hub = await Hub.deploy(await registry.getAddress(), admin.address);
+
+      await expect(
+        hub.connect(user1).withdrawFees(user1.address)
+      ).to.be.reverted;
+    });
+  });
 });

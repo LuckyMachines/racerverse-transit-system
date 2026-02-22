@@ -352,4 +352,26 @@ describe("Arcade Strip Integration", function () {
       expect(coinPusherBalance).to.equal(expectedSupply);
     });
   });
+
+  describe("Fee Withdrawal", function () {
+    it("should withdraw accumulated ETH from Arcade", async function () {
+      const price = ethers.parseEther("0.02");
+
+      await arcadeToken
+        .connect(user1)
+        .approve(await coinPusher.getAddress(), ethers.MaxUint256);
+      await prizeTicket
+        .connect(user1)
+        .approve(await clawMachine.getAddress(), ethers.MaxUint256);
+
+      await arcade.connect(user1).playArcade({ value: price });
+
+      const balanceBefore = await ethers.provider.getBalance(admin.address);
+      const tx = await arcade.withdrawFees(admin.address);
+      const receipt = await tx.wait();
+      const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+      const balanceAfter = await ethers.provider.getBalance(admin.address);
+      expect(balanceAfter - balanceBefore + gasCost).to.equal(ethers.parseEther("0.02"));
+    });
+  });
 });

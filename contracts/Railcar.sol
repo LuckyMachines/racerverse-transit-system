@@ -118,6 +118,19 @@ contract Railcar is IRailcar, AccessControlEnumerable, ReentrancyGuard {
         emit CreationFeeUpdated(oldFee, fee);
     }
 
+    /// @notice Withdraw accumulated fees to a specified address
+    /// @param to The recipient address
+    function withdrawFees(address payable to)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        nonReentrant
+    {
+        uint256 balance = address(this).balance;
+        (bool success, ) = to.call{value: balance}("");
+        if (!success) revert WithdrawFailed();
+        emit FeesWithdrawn(to, balance);
+    }
+
     // ── Internal ───────────────────────────────────────────────
 
     function _createRailcar(address _creatorAddress, uint256 limit) internal {
