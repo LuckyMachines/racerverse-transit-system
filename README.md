@@ -10,8 +10,8 @@
 - **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
 - **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
 - **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 108 tests, 87% code coverage, gas-optimized with Hardhat tooling.
-- **Four working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter), and a Mall Crawl flow (Concourse → Gallery → SoundStage → GameRoom) demonstrate the full system in action, each executing multi-step workflows atomically in a single transaction.
+- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 121 tests, 87% code coverage, gas-optimized with Hardhat tooling.
+- **Five working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter), a Mall Crawl flow (Concourse → Gallery → SoundStage → GameRoom), and a Depot Scheduler flow (Depot → StampStation → Depot) demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
 
 ## Architecture
 
@@ -35,6 +35,7 @@
 |----------|---------|
 | **HubRegistry** | Central registry for all hubs. Manages registration, naming, and fees. |
 | **Hub** | Base contract for transit hubs. Override lifecycle hooks to add custom behavior at each stop. |
+| **AutoLoopHub** | Extends Hub with AutoLoop compatibility for time-based automated transit. |
 | **Railcar** | Group transit. Users join railcars for coordinated group operations. |
 | **ValidCharacters** | Library for validating hub names against `[a-z0-9._-]+`. |
 
@@ -200,19 +201,40 @@ Concourse ──▶ Gallery ──▶ SoundStage ──▶ GameRoom ──▶ Co
 
 All five steps execute atomically in one transaction. Unlike other examples that use user transit (`_userDidEnter`), this example uses **railcar transit** (`_railcarDidEnter`) — each hub iterates over all railcar members, enabling coordinated group operations.
 
+## Example: Depot Scheduler
+
+The [`contracts/examples/depot/`](contracts/examples/depot/) directory contains the first **AutoLoop-compatible example** — a depot where users queue up and an off-chain worker auto-dispatches them as a railcar on a timer:
+
+```
+Depot ──▶ StampStation ──▶ Depot
+(queue)    (stamp)          (complete trip)
+```
+
+**What makes this different from other examples:**
+
+This is the first **async transit pattern** in the system. Instead of executing everything in a single user transaction, users enter a queue and an AutoLoop worker periodically checks `shouldProgressLoop()` and calls `progressLoop()` to dispatch them.
+
+1. **Depot** — Users pay 0.005 ETH to enter queue. After the configured interval, an AutoLoop worker dispatches all queued users as a railcar
+2. **StampStation** — Increments a stamp counter for each member, routes railcar back
+3. **Depot** — On return, increments `tripsCompleted` for each member
+
+The `AutoLoopHub` base contract extends `Hub` with `IAutoLoopCompatible` support, enabling any hub to participate in automated, scheduled workflows via the AutoLoop system.
+
 ## Project Structure
 
 ```
 contracts/
   Hub.sol                  # Base hub contract
+  AutoLoopHub.sol          # AutoLoop-compatible hub base
   HubRegistry.sol          # Central hub registry
   Railcar.sol              # Group transit management
   ValidCharacters.sol      # Name validation library
-  interfaces/              # IHub, IHubRegistry, IRailcar
+  interfaces/              # IHub, IHubRegistry, IRailcar, IAutoLoopCompatible
   examples/nft+defi/       # Full working example
   examples/gaming/         # Gaming loot box example
   examples/arcade/         # Arcade strip example
   examples/mall/           # Mall crawl example (railcar transit)
+  examples/depot/          # Depot scheduler example (AutoLoop async transit)
 test/
   Hub.test.ts              # 17 tests
   HubRegistry.test.ts      # 16 tests
@@ -223,6 +245,7 @@ test/
     GamingLootBox.test.ts       # 12 tests
     ArcadeStrip.test.ts         # 12 tests
     MallCrawl.test.ts           # 13 tests
+    DepotScheduler.test.ts      # 13 tests
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 
