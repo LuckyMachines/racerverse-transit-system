@@ -220,6 +220,64 @@ This is the first **async transit pattern** in the system. Instead of executing 
 
 The `AutoLoopHub` base contract extends `Hub` with `IAutoLoopCompatible` support, enabling any hub to participate in automated, scheduled workflows via the AutoLoop system.
 
+## Revenue Model
+
+The transit system generates revenue at three levels. All fees are configurable by the contract admin and withdrawable via `withdrawFees()`.
+
+### Protocol Fees (HubRegistry)
+
+The HubRegistry is the tollbooth at the on-ramp. Every hub that joins the network pays fees to the registry:
+
+| Fee | When charged | Default | Set by |
+|-----|-------------|---------|--------|
+| `registrationFee` | Hub registers with the network | 0 | `setRegistrationFee(uint256)` |
+| `namingFee` | Hub claims a human-readable name | 0 | `setNamingFee(uint256)` |
+
+These fees scale with network growth — every new hub or name reservation generates registry revenue regardless of who deploys it.
+
+### Infrastructure Fees (Railcar)
+
+| Fee | When charged | Default | Set by |
+|-----|-------------|---------|--------|
+| `creationFee` | User or hub creates a new railcar | 0 | `setCreationFee(uint256)` |
+
+Railcar fees apply to any group transit usage across the entire network.
+
+### Application Fees (Individual Hubs)
+
+Each hub can collect ETH through its own payable entry points. The hub admin controls pricing and withdraws revenue:
+
+| Hub | Entry point | Price | Revenue stays in |
+|-----|------------|-------|-----------------|
+| TicketBooth | `buyLootBox()` | 0.05 ETH | TicketBooth |
+| Arcade | `playArcade()` | 0.02 ETH | Arcade |
+| Concourse | `startCrawl()` | 0.01 ETH | Concourse |
+| Depot | `enterQueue()` | 0.005 ETH | Depot |
+| MainHub | `claimNFT()` | 0.1 ETH | DEX (via prepay) |
+
+### Fee Withdrawal
+
+Every contract that collects ETH exposes the same withdrawal pattern:
+
+```solidity
+// Admin withdraws all accumulated ETH to a specified address
+hub.withdrawFees(payable(treasuryAddress));
+```
+
+- **HubRegistry**, **Hub** (and all subclasses), and **Railcar** all implement `withdrawFees()`
+- Restricted to `DEFAULT_ADMIN_ROLE` with reentrancy protection
+- Emits `FeesWithdrawn(address indexed to, uint256 amount)` on every call
+
+### Revenue for Lucky Machines vs. Third Parties
+
+Lucky Machines controls revenue from contracts it deploys and admins. Third-party developers who deploy their own hubs:
+
+- **Pay** registration and naming fees to the HubRegistry (Lucky Machines revenue)
+- **Keep** all application-level fees collected by their own hubs
+- **Pay** railcar creation fees if their hubs use group transit
+
+This creates a network-effect model: as more third-party hubs join, protocol-level fee revenue grows without Lucky Machines needing to operate those hubs.
+
 ## Project Structure
 
 ```
