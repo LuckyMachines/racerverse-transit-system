@@ -1,17 +1,25 @@
 # Racerverse Transit System
 
+![Solidity](https://img.shields.io/badge/Solidity-0.8.33-363636?logo=solidity)
+![License](https://img.shields.io/badge/License-GPL--3.0-blue)
+![Tests](https://img.shields.io/badge/Tests-135%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-94%25-brightgreen)
+
 ![Racerverse Transit System](assets/racerverse-transit-system.png)
 
 **On-chain infrastructure for connecting smart contracts into composable, multi-step transaction flows.**
 
-## Executive Summary
+**Cross-contract orchestration** — Chain multiple smart contract operations into a single user transaction. A user calls one function and triggers a sequence of actions across many independent contracts.
 
-- **Cross-contract orchestration** — Chain multiple smart contract operations into a single user transaction. A user calls one function and triggers a sequence of actions across many independent contracts.
-- **Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
-- **Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
-- **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
-- **Production-ready** — Solidity 0.8.33, OpenZeppelin v5, custom errors, reentrancy protection, 135 tests, 94% code coverage, gas-optimized with Hardhat tooling.
-- **Five working end-to-end examples** — An NFT+DeFi flow (DEX → Stake → NFT Mint → Party), a Gaming Loot Box flow (TicketBooth → LootRoll → Forge → Arena), an Arcade Strip flow (Arcade → CoinPusher → ClawMachine → PrizeCounter), a Mall Crawl flow (Concourse → Gallery → SoundStage → GameRoom), and a Depot Scheduler flow (Depot → StampStation → Depot) demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
+**Hub-based architecture** — Any smart contract can become a "Hub" by extending the base contract. Hubs register with a central registry, connect to each other, and route users through customizable lifecycle hooks.
+
+**Group transit via Railcars** — Users can form groups (Railcars) for coordinated multi-party operations across connected hubs.
+
+**Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
+
+**Production-ready** — OpenZeppelin v5, custom errors, reentrancy protection, 135 tests, 94% code coverage, gas-optimized with Hardhat tooling.
+
+**Five working end-to-end examples** — An NFT+DeFi flow, a Gaming Loot Box flow, an Arcade Strip flow, a Mall Crawl flow, and a Depot Scheduler flow demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
 
 ## Architecture
 
@@ -39,9 +47,9 @@
 | **Railcar** | Group transit. Users join railcars for coordinated group operations. |
 | **ValidCharacters** | Library for validating hub names against `[a-z0-9._-]+`. |
 
-### Hub Lifecycle Hooks
+### User Lifecycle Hooks
 
-Every Hub provides override points that fire when users arrive or depart:
+Every Hub provides override points that fire when individual users arrive or depart:
 
 | Hook | When it fires |
 |------|---------------|
@@ -50,42 +58,33 @@ Every Hub provides override points that fire when users arrive or depart:
 | `_userWillExit(address)` | Before a user is sent to the next hub |
 | `_userDidExit(address)` | After a user has been forwarded |
 
-## Getting Started
+### Railcar Lifecycle Hooks
 
-### Prerequisites
+Parallel hooks for group transit — fire when a railcar (group of users) arrives or departs:
 
-- Node.js >= 18
+| Hook | When it fires |
+|------|---------------|
+| `_railcarWillEnter(uint256)` | Before a railcar enters this hub |
+| `_railcarDidEnter(uint256)` | After a railcar enters — **primary place for group logic** |
+| `_railcarWillExit(uint256)` | Before a railcar is sent to the next hub |
+| `_railcarDidExit(uint256)` | After a railcar has been forwarded |
 
-### Install & Build
+## Quick Start
 
 ```bash
-npm install
-npm run compile
+npm install          # Install dependencies
+npm run compile      # Compile contracts
+npm test             # Run all 135 tests
 ```
 
-### Test
-
 ```bash
-npm test
+npm run coverage             # Generate coverage report
+REPORT_GAS=true npm test     # Gas usage report
 ```
 
-### Coverage
-
 ```bash
-npm run coverage
-```
-
-### Gas Report
-
-```bash
-REPORT_GAS=true npm test
-```
-
-### Deploy (local)
-
-```bash
-npx hardhat node
-npm run deploy:local
+npx hardhat node             # Start local node
+npm run deploy:local         # Deploy to local network
 ```
 
 ## Usage
@@ -129,9 +128,19 @@ targetHub.setInputAllowed(myHubId, true);
 
 Users are routed through connected hubs automatically. Each hub executes its custom logic via hooks, then forwards the user to the next hub in the chain. This enables complex multi-contract workflows from a single transaction.
 
-## Example: NFT + DeFi Flow
+## Examples
 
-The [`contracts/examples/nft+defi/`](contracts/examples/nft+defi/) directory contains a complete working example with 4 connected hubs:
+| # | Example | Pattern | Hubs | Entry point |
+|---|---------|---------|------|-------------|
+| 1 | [NFT + DeFi Flow](#nft--defi-flow) | User transit | DEX, Stake, ExclusiveNFT, MainHub | `claimNFT()` |
+| 2 | [Gaming Loot Box](#gaming-loot-box) | User transit | TicketBooth, LootRoll, Forge, Arena | `buyLootBox()` |
+| 3 | [Arcade Strip](#arcade-strip) | User transit | Arcade, CoinPusher, ClawMachine, PrizeCounter | `playArcade()` |
+| 4 | [Mall Crawl](#mall-crawl) | Railcar transit | Concourse, Gallery, SoundStage, GameRoom | `startCrawl()` |
+| 5 | [Depot Scheduler](#depot-scheduler) | AutoLoop async | Depot, StampStation | `enterQueue()` |
+
+### NFT + DeFi Flow
+
+[`contracts/examples/nft+defi/`](contracts/examples/nft+defi/)
 
 ```
 MainHub ──▶ DEX ──▶ Stake ──▶ ExclusiveNFT ──▶ MainHub
@@ -147,9 +156,9 @@ MainHub ──▶ DEX ──▶ Stake ──▶ ExclusiveNFT ──▶ MainHub
 
 All five steps execute atomically in one transaction.
 
-## Example: Gaming Loot Box
+### Gaming Loot Box
 
-The [`contracts/examples/gaming/`](contracts/examples/gaming/) directory contains a gaming use case with 4 connected hubs:
+[`contracts/examples/gaming/`](contracts/examples/gaming/)
 
 ```
 TicketBooth ──▶ LootRoll ──▶ Forge ──▶ Arena ──▶ TicketBooth
@@ -165,9 +174,9 @@ TicketBooth ──▶ LootRoll ──▶ Forge ──▶ Arena ──▶ TicketB
 
 All five steps execute atomically in one transaction.
 
-## Example: Arcade Strip
+### Arcade Strip
 
-The [`contracts/examples/arcade/`](contracts/examples/arcade/) directory contains an arcade gaming flow with 4 connected hubs and ERC20 token economies:
+[`contracts/examples/arcade/`](contracts/examples/arcade/)
 
 ```
 Arcade ──▶ CoinPusher ──▶ ClawMachine ──▶ PrizeCounter ──▶ Arcade
@@ -183,9 +192,9 @@ Arcade ──▶ CoinPusher ──▶ ClawMachine ──▶ PrizeCounter ──�
 
 All five steps execute atomically in one transaction. Users pre-approve ERC20 spending before calling `playArcade()`, enabling token transfers across hubs within the flow.
 
-## Example: Mall Crawl
+### Mall Crawl
 
-The [`contracts/examples/mall/`](contracts/examples/mall/) directory contains the first **railcar-based example** — a mall where a shopping group (Railcar) visits 4 storefronts in a single atomic transaction:
+[`contracts/examples/mall/`](contracts/examples/mall/) — First **railcar-based example**
 
 ```
 Concourse ──▶ Gallery ──▶ SoundStage ──▶ GameRoom ──▶ Concourse
@@ -201,9 +210,9 @@ Concourse ──▶ Gallery ──▶ SoundStage ──▶ GameRoom ──▶ Co
 
 All five steps execute atomically in one transaction. Unlike other examples that use user transit (`_userDidEnter`), this example uses **railcar transit** (`_railcarDidEnter`) — each hub iterates over all railcar members, enabling coordinated group operations.
 
-## Example: Depot Scheduler
+### Depot Scheduler
 
-The [`contracts/examples/depot/`](contracts/examples/depot/) directory contains the first **AutoLoop-compatible example** — a depot where users queue up and an off-chain worker auto-dispatches them as a railcar on a timer:
+[`contracts/examples/depot/`](contracts/examples/depot/) — First **AutoLoop-compatible example**
 
 ```
 Depot ──▶ StampStation ──▶ Depot
@@ -280,6 +289,8 @@ This creates a network-effect model: as more third-party hubs join, protocol-lev
 
 ## Project Structure
 
+135 tests across 9 test suites:
+
 ```
 contracts/
   Hub.sol                  # Base hub contract
@@ -307,6 +318,10 @@ test/
 ignition/modules/          # Hardhat Ignition deployment modules
 ```
 
+## Contributing
+
+Issues and PRs welcome.
+
 ## License
 
-GPL-3.0
+[GPL-3.0](LICENSE)
