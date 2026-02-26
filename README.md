@@ -82,10 +82,10 @@ Parallel hooks for group transit — fire when a railcar (group of users) arrive
 
 ## Quick Start
 
-The Transit System uses the Lucky Machines package registry for `@luckymachines/autoloop`. The `.npmrc` file in this repo is already configured.
+The Transit System installs dependencies from the Lucky Machines Verdaccio registry (`http://localhost:4873`). The `.npmrc` file in this repo is already configured.
 
 ```bash
-npm install          # Install dependencies (pulls autoloop from packages.luckymachines.io)
+npm install          # Install dependencies from Verdaccio
 npm run compile      # Compile contracts
 npm test             # Run all 135 tests
 ```

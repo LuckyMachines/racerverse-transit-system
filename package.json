@@ -1,6 +1,6 @@
 {
   "name": "racerverse-transit-system",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
   "keywords": [
     "racerverse",
@@ -25,12 +25,11 @@
     "deploy:depot:live": "hardhat run scripts/deploy-depot-stack.ts --network live",
     "test:autoloop-integration": "bash scripts/autoloop-integration.sh"
   },
-
   "publishConfig": {
-    "registry": "https://packages.luckymachines.io"
+    "registry": "http://localhost:4873"
   },
   "dependencies": {
-    "@luckymachines/autoloop": "file:../AUTOLOOP_STUFF/autoloop"
+    "@luckymachines/autoloop": "^0.1.1"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
