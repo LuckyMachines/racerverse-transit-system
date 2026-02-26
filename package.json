@@ -1,6 +1,6 @@
 {
   "name": "racerverse-transit-system",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
   "keywords": [
     "racerverse",
@@ -18,6 +18,13 @@
   "author": "Racerverse",
   "license": "GPL-3.0",
   "scripts": {
+    "registry:set": "node scripts/registry-config.cjs",
+    "registry:show": "node scripts/registry-config.cjs show",
+    "registry:local": "node scripts/registry-config.cjs local",
+    "registry:staging": "node scripts/registry-config.cjs staging",
+    "registry:prod": "node scripts/registry-config.cjs prod",
+    "registry:ping": "node scripts/registry-config.cjs ping",
+    "publish:registry": "node scripts/publish-registry.cjs",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
@@ -25,11 +32,8 @@
     "deploy:depot:live": "hardhat run scripts/deploy-depot-stack.ts --network live",
     "test:autoloop-integration": "bash scripts/autoloop-integration.sh"
   },
-  "publishConfig": {
-    "registry": "http://localhost:4873"
-  },
   "dependencies": {
-    "@luckymachines/autoloop": "^0.1.1"
+    "@luckymachines/autoloop": "^0.1.2"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

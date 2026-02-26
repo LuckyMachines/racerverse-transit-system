@@ -82,7 +82,15 @@ Parallel hooks for group transit — fire when a railcar (group of users) arrive
 
 ## Quick Start
 
-The Transit System installs dependencies from the Lucky Machines Verdaccio registry (`http://localhost:4873`). The `.npmrc` file in this repo is already configured.
+The Transit System installs dependencies from a configurable Verdaccio endpoint.
+
+```bash
+npm run registry:local    # http://localhost:4873
+npm run registry:staging  # https://staging-packages.luckymachines.io
+npm run registry:prod     # https://packages.luckymachines.io
+npm run registry:set -- custom https://your-registry.example.com
+npm run registry:ping
+```
 
 ```bash
 npm install          # Install dependencies from Verdaccio
@@ -98,6 +106,12 @@ REPORT_GAS=true npm test     # Gas usage report
 ```bash
 npx hardhat node             # Start local node
 npm run deploy:local         # Deploy to local network
+```
+
+Publish to the configured registry:
+
+```bash
+npm run publish:registry
 ```
 
 ## AutoLoop Integration (Full Stack)
