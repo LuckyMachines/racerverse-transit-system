@@ -2,6 +2,19 @@
   "name": "racerverse-transit-system",
   "version": "1.0.0",
   "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
+  "keywords": [
+    "racerverse",
+    "transit-system",
+    "solidity",
+    "smart-contracts",
+    "hub-registry",
+    "autoloop",
+    "ethereum"
+  ],
+  "homepage": "https://github.com/LuckyMachines/RCS_Racerverse_Transit_System#readme",
+  "bugs": {
+    "url": "https://github.com/LuckyMachines/RCS_Racerverse_Transit_System/issues"
+  },
   "author": "Racerverse",
   "license": "GPL-3.0",
   "scripts": {

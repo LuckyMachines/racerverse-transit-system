@@ -1,0 +1,36 @@
+# Racerverse Transit System
+
+Racerverse Transit System is a hub-and-registry smart-contract framework for multi-step user and group transit across connected dapps.
+
+## Canonical Files
+
+- `README.md` - architecture, examples, and economics
+- `contracts/Hub.sol` - core hub lifecycle hooks
+- `contracts/HubRegistry.sol` - hub registration and naming
+- `contracts/Railcar.sol` - group transit model
+- `contracts/AutoLoopHub.sol` - AutoLoop-compatible async transit hub
+- `contracts/examples/` - end-to-end reference flows
+
+## Example Entrypoints
+
+- `contracts/examples/nft+defi/MainHub.sol` - `claimNFT()`
+- `contracts/examples/gaming/TicketBooth.sol` - `buyLootBox()`
+- `contracts/examples/arcade/Arcade.sol` - `playArcade()`
+- `contracts/examples/mall/Concourse.sol` - `startCrawl()`
+- `contracts/examples/depot/Depot.sol` - `enterQueue()` (async AutoLoop path)
+
+## Developer Commands
+
+1. `npm install`
+2. `npm run compile`
+3. `npm test`
+4. `npm run test:autoloop-integration`
+
+## AutoLoop Integration
+
+- Local integration expects sibling repositories:
+  - `../AUTOLOOP_STUFF/autoloop`
+  - `../AUTOLOOP_STUFF/autoloop-worker`
+- Deployment helper: `scripts/deploy-depot-stack.ts`
+- Full local harness: `scripts/autoloop-integration.sh`
+
