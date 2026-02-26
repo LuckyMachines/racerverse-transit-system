@@ -1,6 +1,6 @@
 # Racerverse Transit System
 
-![Solidity](https://img.shields.io/badge/Solidity-0.8.33-363636?logo=solidity)
+![Solidity](https://img.shields.io/badge/Solidity-0.8.34-363636?logo=solidity)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue)
 ![Tests](https://img.shields.io/badge/Tests-135%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/Coverage-94%25-brightgreen)
@@ -20,6 +20,17 @@
 **Production-ready** — OpenZeppelin v5, custom errors, reentrancy protection, 135 tests, 94% code coverage, gas-optimized with Hardhat tooling.
 
 **Five working end-to-end examples** — An NFT+DeFi flow, a Gaming Loot Box flow, an Arcade Strip flow, a Mall Crawl flow, and a Depot Scheduler flow demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
+
+## AI Agent and LLM Discovery
+
+Machine-readable project context is available at `llms.txt`.
+
+Recommended integration path for automated agents:
+
+1. Read `llms.txt` and this `README.md`
+2. Compile and test core contracts (`npm run compile`, `npm test`)
+3. Run AutoLoop integration harness (`npm run test:autoloop-integration`)
+4. Start from `contracts/examples/depot/` for async transit plus worker-driven progression
 
 ## Architecture
 
@@ -71,8 +82,10 @@ Parallel hooks for group transit — fire when a railcar (group of users) arrive
 
 ## Quick Start
 
+The Transit System uses the Lucky Machines package registry for `@luckymachines/autoloop`. The `.npmrc` file in this repo is already configured.
+
 ```bash
-npm install          # Install dependencies
+npm install          # Install dependencies (pulls autoloop from packages.luckymachines.io)
 npm run compile      # Compile contracts
 npm test             # Run all 135 tests
 ```
@@ -85,6 +98,34 @@ REPORT_GAS=true npm test     # Gas usage report
 ```bash
 npx hardhat node             # Start local node
 npm run deploy:local         # Deploy to local network
+```
+
+## AutoLoop Integration (Full Stack)
+
+The repository now includes an end-to-end integration harness that runs Transit with the real AutoLoop contracts and worker:
+
+```bash
+npm run test:autoloop-integration
+```
+
+What this script does:
+
+1. Starts Anvil on `http://localhost:8555`
+2. Deploys AutoLoop core contracts from the sibling `autoloop` repo
+3. Deploys `HubRegistry`, `Railcar`, `StampStation`, and `Depot`
+4. Registers `Depot` in AutoLoop
+5. Starts `autoloop-worker` and verifies queued users are auto-dispatched through `StampStation` and back to `Depot`
+
+By default, the script looks for sibling paths:
+- `../AUTOLOOP_STUFF/autoloop`
+- `../AUTOLOOP_STUFF/autoloop-worker`
+
+You can override these with `AUTOLOOP_DIR=...` and `WORKER_DIR=...`.
+
+The deployment-only portion is also available as:
+
+```bash
+RPC_URL=http://localhost:8555 DEPLOYER_KEY=0x... npm run deploy:depot:live
 ```
 
 ## Usage
