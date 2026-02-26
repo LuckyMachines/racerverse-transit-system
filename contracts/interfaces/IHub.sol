@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.33;
+pragma solidity 0.8.34;
 
 /// @title IHub - Interface for Hub contracts
 /// @notice Defines the external API, custom errors, and events for Hub

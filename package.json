@@ -8,7 +8,16 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
-    "deploy:local": "hardhat ignition deploy ignition/modules/TransitSystem.ts --network localhost"
+    "deploy:local": "hardhat ignition deploy ignition/modules/TransitSystem.ts --network localhost",
+    "deploy:depot:live": "hardhat run scripts/deploy-depot-stack.ts --network live",
+    "test:autoloop-integration": "bash scripts/autoloop-integration.sh"
+  },
+
+  "publishConfig": {
+    "registry": "https://packages.luckymachines.io"
+  },
+  "dependencies": {
+    "@luckymachines/autoloop": "file:../AUTOLOOP_STUFF/autoloop"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

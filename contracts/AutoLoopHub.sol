@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.33;
+pragma solidity 0.8.34;
 
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import {Hub} from "./Hub.sol";
-import {IAutoLoopCompatible} from "./interfaces/IAutoLoopCompatible.sol";
+import {AutoLoopCompatibleInterface} from "@luckymachines/autoloop/src/AutoLoopCompatibleInterface.sol";
 
 /// @title AutoLoopHub - Base contract for AutoLoop-compatible hubs
 /// @notice Extends Hub with AutoLoop integration for time-based automation.
 ///         Subclasses override _shouldProgressLoop() and _progressLoop().
-abstract contract AutoLoopHub is Hub, IAutoLoopCompatible {
+abstract contract AutoLoopHub is Hub, AutoLoopCompatibleInterface {
     uint256 internal _loopID = 1;
 
     constructor(
@@ -18,7 +18,7 @@ abstract contract AutoLoopHub is Hub, IAutoLoopCompatible {
 
     // ── IAutoLoopCompatible ────────────────────────────────────
 
-    /// @inheritdoc IAutoLoopCompatible
+    /// @inheritdoc AutoLoopCompatibleInterface
     function shouldProgressLoop()
         external
         view
@@ -28,7 +28,7 @@ abstract contract AutoLoopHub is Hub, IAutoLoopCompatible {
         return _shouldProgressLoop();
     }
 
-    /// @inheritdoc IAutoLoopCompatible
+    /// @inheritdoc AutoLoopCompatibleInterface
     function progressLoop(bytes calldata progressWithData) external override {
         _progressLoop(progressWithData);
     }
@@ -44,7 +44,7 @@ abstract contract AutoLoopHub is Hub, IAutoLoopCompatible {
         returns (bool)
     {
         return
-            interfaceId == type(IAutoLoopCompatible).interfaceId ||
+            interfaceId == type(AutoLoopCompatibleInterface).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 

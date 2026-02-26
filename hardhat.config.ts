@@ -4,7 +4,7 @@ import "dotenv/config";
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.33",
+    version: "0.8.34",
     settings: {
       evmVersion: "cancun",
       optimizer: {
