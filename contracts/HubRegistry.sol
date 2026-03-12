@@ -30,6 +30,9 @@ contract HubRegistry is IHubRegistry, AccessControlEnumerable, ReentrancyGuard {
     uint256 public registrationFee;
     uint256 public namingFee;
 
+    /// @notice Maximum number of hub addresses returned in a single range query
+    uint256 public constant MAX_RANGE_SIZE = 500;
+
     /// @param adminAddress The address to grant DEFAULT_ADMIN_ROLE
     constructor(address adminAddress) {
         _grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
@@ -99,6 +102,8 @@ contract HubRegistry is IHubRegistry, AccessControlEnumerable, ReentrancyGuard {
         if (maxID < startingID) revert MaxIdLessThanStartingId();
         uint256 actualMaxID = maxID > totalRegistrations ? totalRegistrations : maxID;
         uint256 size = actualMaxID - startingID + 1;
+        if (size > MAX_RANGE_SIZE)
+            revert RangeExceedsMaximum(size, MAX_RANGE_SIZE);
         address[] memory hubs = new address[](size);
         // BUG FIX: was `startingID - i` which underflows; corrected to `i - startingID`
         for (uint256 i = startingID; i < startingID + size; i++) {

@@ -10,6 +10,7 @@ interface IHub {
     error InvalidHubIndices();
     error RegistrationFailed();
     error WithdrawFailed();
+    error TransitDepthExceeded();
 
     // Events
     event InputAdded(uint256 indexed hubId);

@@ -17,6 +17,10 @@ contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
     bool public allowAllInputs;
     HubRegistry public REGISTRY;
 
+    /// @notice Maximum depth of nested hub-to-hub transit calls
+    uint256 public constant MAX_TRANSIT_DEPTH = 32;
+    uint256 private _transitDepth;
+
     modifier onlyAuthorizedHub() {
         if (
             !allowAllInputs &&
@@ -55,32 +59,40 @@ contract Hub is IHub, AccessControlEnumerable, ReentrancyGuard {
 
     /// @notice Receive a user from an authorized input hub
     /// @param userAddress The user being transferred
-    /// @dev No reentrancy guard here: transit flows legitimately re-enter
-    ///      the originating hub (e.g. MainHub → DEX → ... → MainHub)
+    /// @dev A depth counter (instead of nonReentrant) allows legitimate circular
+    ///      flows (e.g. MainHub → DEX → ... → MainHub) while capping recursion
+    ///      to prevent stack-overflow or gas-griefing attacks.
     function enterUser(address userAddress)
         external
         virtual
         onlyAuthorizedHub
     {
+        if (_transitDepth >= MAX_TRANSIT_DEPTH) revert TransitDepthExceeded();
         uint256 senderHubId = REGISTRY.idFromAddress(msg.sender);
         if (!inputActive[senderHubId]) revert OriginHubNotInput();
+        _transitDepth++;
         emit UserEntered(userAddress, senderHubId);
         _userWillEnter(userAddress);
         _userDidEnter(userAddress);
+        _transitDepth--;
     }
 
     /// @notice Receive a railcar from an authorized input hub
     /// @param railcarID The railcar being transferred
+    /// @dev See enterUser for depth guard rationale
     function enterRailcar(uint256 railcarID)
         external
         virtual
         onlyAuthorizedHub
     {
+        if (_transitDepth >= MAX_TRANSIT_DEPTH) revert TransitDepthExceeded();
         uint256 senderHubId = REGISTRY.idFromAddress(msg.sender);
         if (!inputActive[senderHubId]) revert OriginHubNotInput();
+        _transitDepth++;
         emit RailcarEntered(railcarID, senderHubId);
         _railcarWillEnter(railcarID);
         _railcarDidEnter(railcarID);
+        _transitDepth--;
     }
 
     /// @notice Called by another hub to remove itself as an input

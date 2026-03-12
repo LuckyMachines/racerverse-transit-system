@@ -8,6 +8,9 @@ import {Hub} from "../../Hub.sol";
 
 /// @title ClawMachine - ERC721 plushie NFT minter hub for the Arcade Strip example
 /// @notice Takes 10 PrizeTickets via transferFrom, mints a plushie NFT with random type and rarity
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract ClawMachine is ERC721, Hub {
     event PlushieWon(address indexed user, uint256 indexed tokenId, PlushieType plushieType, Rarity rarity);
 

@@ -250,6 +250,48 @@ describe("Hub", function () {
     });
   });
 
+  describe("Transit Depth Guard", function () {
+    it("should expose MAX_TRANSIT_DEPTH constant", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hub = await Hub.deploy(await registry.getAddress(), admin.address);
+      expect(await hub.MAX_TRANSIT_DEPTH()).to.equal(32);
+    });
+
+    it("should allow normal-depth transit without reverting", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hubA = await Hub.deploy(await registry.getAddress(), admin.address);
+      const hubB = await Hub.deploy(await registry.getAddress(), admin.address);
+      await hubB.setAllowAllInputs(true);
+
+      const hubBId = await registry.idFromAddress(await hubB.getAddress());
+      await hubA.addHubConnections([hubBId]);
+
+      const hubAAddr = await hubA.getAddress();
+      await fundAddress(hubAAddr);
+      const hubASigner = await ethers.getImpersonatedSigner(hubAAddr);
+
+      await expect(hubB.connect(hubASigner).enterUser(user1.address)).to.not.be
+        .reverted;
+    });
+
+    it("should allow normal-depth railcar transit without reverting", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      const hubA = await Hub.deploy(await registry.getAddress(), admin.address);
+      const hubB = await Hub.deploy(await registry.getAddress(), admin.address);
+      await hubB.setAllowAllInputs(true);
+
+      const hubBId = await registry.idFromAddress(await hubB.getAddress());
+      await hubA.addHubConnections([hubBId]);
+
+      const hubAAddr = await hubA.getAddress();
+      await fundAddress(hubAAddr);
+      const hubASigner = await ethers.getImpersonatedSigner(hubAAddr);
+
+      await expect(hubB.connect(hubASigner).enterRailcar(1)).to.not.be
+        .reverted;
+    });
+  });
+
   describe("Fee Withdrawal", function () {
     it("should withdraw accumulated ETH to specified address", async function () {
       const Hub = await ethers.getContractFactory("Hub");

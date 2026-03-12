@@ -8,6 +8,9 @@ import {Railcar} from "../../Railcar.sol";
 
 /// @title Gallery - Generative art store hub for the Mall Crawl example
 /// @notice Mints an art NFT with random Style + Palette for each railcar member
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract Gallery is ERC721, Hub {
     enum ArtStyle { Abstract, Geometric, Surreal, Minimalist }
     enum Palette { Warm, Cool, Monochrome, Neon }

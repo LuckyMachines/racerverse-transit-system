@@ -7,7 +7,9 @@ import {Railcar} from "../../Railcar.sol";
 
 /// @title GameRoom - Store credit game hub for the Mall Crawl example
 /// @notice Awards random MallCredit (10/25/50/100) to each railcar member
-/// @dev Uses block.prevrandao + block.timestamp for randomness — NOT production-safe
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract GameRoom is Hub {
     event PrizeWon(
         address indexed member,

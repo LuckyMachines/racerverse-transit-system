@@ -13,6 +13,7 @@ interface IHubRegistry {
     error NameUnavailable(string name);
     error StartingIdOutOfBounds(uint256 startingID, uint256 total);
     error MaxIdLessThanStartingId();
+    error RangeExceedsMaximum(uint256 requested, uint256 maximum);
     error WithdrawFailed();
 
     // Events

@@ -170,6 +170,39 @@ describe("HubRegistry", function () {
         registry.hubAddressesInRange(2, 1)
       ).to.be.revertedWithCustomError(registry, "MaxIdLessThanStartingId");
     });
+
+    it("should expose MAX_RANGE_SIZE constant", async function () {
+      expect(await registry.MAX_RANGE_SIZE()).to.equal(500);
+    });
+
+    it("should revert if range exceeds MAX_RANGE_SIZE", async function () {
+      // Register one hub so startingID=1 is valid
+      const Hub = await ethers.getContractFactory("Hub");
+      await Hub.deploy(await registry.getAddress(), admin.address);
+      // Request range 1..501 which would be 501 entries (clamped to totalRegistrations=1, so actually only 1)
+      // We need >500 registrations for this to trigger. Use a trick: request range 1..99999
+      // but totalRegistrations is 1, so actualMaxID=1, size=1. That won't trigger.
+      // Instead, register enough hubs or test with the error directly.
+      // The simplest approach: register 501 hubs and query all of them
+      for (let i = 0; i < 500; i++) {
+        await Hub.deploy(await registry.getAddress(), admin.address);
+      }
+      // Now totalRegistrations = 501, query 1..501 = 501 entries > 500
+      await expect(
+        registry.hubAddressesInRange(1, 501)
+      ).to.be.revertedWithCustomError(registry, "RangeExceedsMaximum");
+    });
+
+    it("should allow range at exactly MAX_RANGE_SIZE", async function () {
+      const Hub = await ethers.getContractFactory("Hub");
+      // We already have 0 hubs, deploy 500
+      for (let i = 0; i < 500; i++) {
+        await Hub.deploy(await registry.getAddress(), admin.address);
+      }
+      // Query 1..500 = 500 entries = MAX_RANGE_SIZE
+      const addresses = await registry.hubAddressesInRange(1, 500);
+      expect(addresses.length).to.equal(500);
+    });
   });
 
   describe("withdrawFees", function () {

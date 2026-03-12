@@ -2,7 +2,7 @@
 
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.34-363636?logo=solidity)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue)
-![Tests](https://img.shields.io/badge/Tests-135%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-141%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/Coverage-94%25-brightgreen)
 
 ![Racerverse Transit System](assets/racerverse-transit-system.png)
@@ -17,7 +17,7 @@
 
 **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
 
-**Production-ready** — OpenZeppelin v5, custom errors, reentrancy protection, 135 tests, 94% code coverage, gas-optimized with Hardhat tooling.
+**Production-ready** — OpenZeppelin v5, custom errors, reentrancy protection, transit depth guard, 141 tests, 94% code coverage, gas-optimized with Hardhat tooling.
 
 **Five working end-to-end examples** — An NFT+DeFi flow, a Gaming Loot Box flow, an Arcade Strip flow, a Mall Crawl flow, and a Depot Scheduler flow demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
 
@@ -95,7 +95,7 @@ npm run registry:ping
 ```bash
 npm install          # Install dependencies from Verdaccio
 npm run compile      # Compile contracts
-npm test             # Run all 135 tests
+npm test             # Run all 141 tests
 ```
 
 ```bash
@@ -284,6 +284,20 @@ This is the first **async transit pattern** in the system. Instead of executing 
 
 The `AutoLoopHub` base contract extends `Hub` with `IAutoLoopCompatible` support, enabling any hub to participate in automated, scheduled workflows via the AutoLoop system.
 
+## Security Notes
+
+### Transit Depth Guard
+
+`Hub.enterUser()` and `Hub.enterRailcar()` enforce a `MAX_TRANSIT_DEPTH` of 32 nested calls. This allows legitimate circular flows (e.g. MainHub → DEX → Stake → ExclusiveNFT → MainHub) while preventing unbounded recursion or gas-griefing attacks from malicious hubs. Exceeding the depth reverts with `TransitDepthExceeded()`.
+
+### Randomness in Examples
+
+The example contracts (LootRoll, CoinPusher, ClawMachine, Gallery, SoundStage, GameRoom) use `block.prevrandao` and `block.timestamp` for pseudo-randomness. **These values can be influenced by validators and are not suitable for high-stakes production use.** For production deployments requiring verifiable randomness, integrate [AutoLoop VRF](https://github.com/LuckyMachines/autoloop) or another on-chain VRF oracle.
+
+### Range Query Gas Limit
+
+`HubRegistry.hubAddressesInRange()` enforces a `MAX_RANGE_SIZE` of 500 to prevent gas-limit DoS. Use pagination for larger registries.
+
 ## Revenue Model
 
 The transit system generates revenue at three levels. All fees are configurable by the contract admin and withdrawable via `withdrawFees()`.
@@ -344,7 +358,7 @@ This creates a network-effect model: as more third-party hubs join, protocol-lev
 
 ## Project Structure
 
-135 tests across 9 test suites:
+141 tests across 9 test suites:
 
 ```
 contracts/
@@ -360,8 +374,8 @@ contracts/
   examples/mall/           # Mall crawl example (railcar transit)
   examples/depot/          # Depot scheduler example (AutoLoop async transit)
 test/
-  Hub.test.ts              # 21 tests
-  HubRegistry.test.ts      # 16 tests
+  Hub.test.ts              # 24 tests
+  HubRegistry.test.ts      # 19 tests
   Railcar.test.ts          # 18 tests
   ValidCharacters.test.ts  # 13 tests
   examples/

@@ -9,6 +9,9 @@ import {Railcar} from "../../Railcar.sol";
 
 /// @title SoundStage - Music NFT store hub for the Mall Crawl example
 /// @notice Takes 20 MallCredit per member, mints a music NFT with random Genre + BPM
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract SoundStage is ERC721, Hub {
     enum Genre { Electronic, Jazz, Classical, HipHop }
 

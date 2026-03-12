@@ -6,7 +6,9 @@ import {Hub} from "../../Hub.sol";
 
 /// @title CoinPusher - Game hub for the Arcade Strip example
 /// @notice Takes 50 ArcadeTokens via transferFrom, awards random PrizeTickets
-/// @dev Uses block.prevrandao + block.timestamp for randomness — NOT production-safe
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract CoinPusher is Hub {
     event CoinsPushed(address indexed user, PrizeLevel level, uint256 ticketsWon);
 

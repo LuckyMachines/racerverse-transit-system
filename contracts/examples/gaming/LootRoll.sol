@@ -5,7 +5,9 @@ import {Hub} from "../../Hub.sol";
 
 /// @title LootRoll - Pseudo-random item roll hub for the Gaming Loot Box example
 /// @notice Rolls a random item type and power level when a user enters
-/// @dev Uses block.prevrandao + block.timestamp for randomness — NOT production-safe
+/// @dev WARNING: Uses block.prevrandao + block.timestamp for randomness.
+///      Validators can influence these values. For production use, integrate
+///      a verifiable randomness source such as AutoLoop VRF.
 contract LootRoll is Hub {
     error NotRolled(address user);
 
