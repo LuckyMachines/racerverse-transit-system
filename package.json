@@ -1,5 +1,5 @@
 {
-  "name": "racerverse-transit-system",
+  "name": "@luckymachines/racerverse-transit-system",
   "version": "1.1.0",
   "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
   "keywords": [
