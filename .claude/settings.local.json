@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:hardhat.org)",
+      "Bash(npx hardhat:*)",
+      "Bash(REPORT_GAS=true npx hardhat test:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

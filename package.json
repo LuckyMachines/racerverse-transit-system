@@ -1,6 +1,6 @@
 {
   "name": "@luckymachines/racerverse-transit-system",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "An on-chain registry and mass connection / transit system for dapps and their users.",
   "keywords": [
     "racerverse",
@@ -30,12 +30,17 @@
     "coverage": "hardhat coverage",
     "deploy:local": "hardhat ignition deploy ignition/modules/TransitSystem.ts --network localhost",
     "deploy:depot:live": "hardhat run scripts/deploy-depot-stack.ts --network live",
-    "test:autoloop-integration": "bash scripts/autoloop-integration.sh"
+    "test:autoloop-integration": "bash scripts/autoloop-integration.sh",
+    "deploy:core:mainnet": "node scripts/deploy-core-kms.cjs --network mainnet",
+    "deploy:core:sepolia": "node scripts/deploy-core-kms.cjs --network sepolia",
+    "deploy:core:mainnet:dry": "node scripts/deploy-core-kms.cjs --network mainnet --dry-run",
+    "deploy:core:sepolia:dry": "node scripts/deploy-core-kms.cjs --network sepolia --dry-run"
   },
   "dependencies": {
-    "@luckymachines/autoloop": "^0.1.2"
+    "@luckymachines/autoloop": "^0.2.2"
   },
   "devDependencies": {
+    "@google-cloud/kms": "^5.4.0",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.5.0",
     "dotenv": "^16.4.7",

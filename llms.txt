@@ -5,6 +5,9 @@ Racerverse Transit System is a hub-and-registry smart-contract framework for mul
 ## Canonical Files
 
 - `README.md` - architecture, examples, and economics
+- `DEPLOYMENTS.md` - deployed contract addresses (mainnet + Sepolia)
+- `DEPLOY.md` - deployment process documentation
+- `deployments.json` - machine-readable deployment addresses
 - `contracts/Hub.sol` - core hub lifecycle hooks
 - `contracts/HubRegistry.sol` - hub registration and naming
 - `contracts/Railcar.sol` - group transit model

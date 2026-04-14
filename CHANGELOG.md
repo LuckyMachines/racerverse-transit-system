@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2026-03-16
+
+### Added
+- **Mainnet and Sepolia deployments** of core contracts (ValidCharacters, HubRegistry, Railcar). Addresses in `deployments.json` and `DEPLOYMENTS.md`.
+- **KMS deployment script** (`scripts/deploy-core-kms.cjs`) for deploying via GCP Cloud KMS signer with dry-run support.
+- **GCP KMS signer** (`scripts/gcp-kms-signer.cjs`) for HSM-backed transaction signing.
+- **DEPLOY.md** documenting the full deployment process.
+- npm scripts: `deploy:core:mainnet`, `deploy:core:sepolia`, plus `--dry` variants.
+
+### Changed
+- Updated `@luckymachines/autoloop` dependency from `^0.1.2` to `^0.2.2`.
+
 ## [1.1.0] - 2026-03-12
 
 ### Added

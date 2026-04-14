@@ -17,6 +17,8 @@
 
 **Plug-and-play composability** — Third-party dapps can join the transit network by deploying a Hub, registering it, and connecting to existing hubs. No changes to other contracts required.
 
+**Live on Ethereum** — Core contracts deployed to mainnet and Sepolia. See [DEPLOYMENTS.md](DEPLOYMENTS.md) for addresses.
+
 **Production-ready** — OpenZeppelin v5, custom errors, reentrancy protection, transit depth guard, 141 tests, 94% code coverage, gas-optimized with Hardhat tooling.
 
 **Five working end-to-end examples** — An NFT+DeFi flow, a Gaming Loot Box flow, an Arcade Strip flow, a Mall Crawl flow, and a Depot Scheduler flow demonstrate the full system in action, from atomic single-transaction workflows to automated time-based dispatch.
@@ -106,6 +108,14 @@ REPORT_GAS=true npm test     # Gas usage report
 ```bash
 npx hardhat node             # Start local node
 npm run deploy:local         # Deploy to local network
+```
+
+Deploy to live networks (requires GCP KMS auth — see [DEPLOY.md](DEPLOY.md)):
+
+```bash
+npm run deploy:core:mainnet:dry   # Dry run (estimate gas)
+npm run deploy:core:mainnet       # Deploy to mainnet
+npm run deploy:core:sepolia       # Deploy to Sepolia
 ```
 
 Publish to the configured registry:
